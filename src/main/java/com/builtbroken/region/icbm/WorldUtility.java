@@ -3,13 +3,14 @@ package com.builtbroken.region.icbm;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.storage.WorldInfo;
 
 public class WorldUtility
 {
 	/** Gets the world provider from the world using reflection */
-	public static WorldProvider getProvider(net.minecraft.world.World world)
+	public static WorldProvider getProvider(World world)
 	{
 		Field f = null;
 		try
@@ -34,7 +35,7 @@ public class WorldUtility
 	}
 
 	/** Gets the dim id from the world using reflection */
-	public static int getDimID(net.minecraft.world.World world)
+	public static int getDimID(World world)
 	{
 		try
 		{
@@ -62,7 +63,7 @@ public class WorldUtility
 	}
 
 	/** Gets the dim id from the world using reflection */
-	public static String getDimName(net.minecraft.world.World world)
+	public static String getDimName(World world)
 	{
 		try
 		{
@@ -114,22 +115,14 @@ public class WorldUtility
 	}
 
 	/** Gets the WorldName from the world using reflection */
-	public static String getWorldName(net.minecraft.world.World world)
+	public static String getWorldName(World world)
 	{
 		try
 		{
 			WorldInfo info = getWorldInfo(world);
 			if (info != null)
 			{
-				Method m = null;
-				try
-				{
-					m = info.getClass().getMethod("getWorldName");
-				}
-				catch (NoSuchMethodException e1)
-				{
-					m = info.getClass().getMethod("func_76065_j");
-				}
+				Method m = ReflectionHelper.getMethodWithAlt(info.getClass(), "getWorldName", "func_76065_j");
 				if (m != null)
 					return (String) m.invoke(info);
 			}
