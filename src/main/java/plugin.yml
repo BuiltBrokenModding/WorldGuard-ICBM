@@ -1,0 +1,6 @@
+name: WGICBM
+version: "0.0.1"
+main: com.builtbroken.region.icbm.PluginRegionICBM
+depend: [ WorldGuard , WGCustomFlags ]
+softdepend: [ WorldEdit ]
+authors: [ DarkGuardsman ]
