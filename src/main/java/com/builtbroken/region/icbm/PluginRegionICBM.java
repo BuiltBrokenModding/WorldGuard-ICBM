@@ -8,8 +8,10 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.List;
 
 import net.minecraft.world.WorldProvider;
+import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.Event;
 import net.minecraftforge.event.EventPriority;
@@ -121,11 +123,13 @@ public class PluginRegionICBM extends JavaPlugin
 			Vector vec = new Vector(event.x, event.y, event.z);
 			int dim = 0; // field_73011_w
 			String dimName = "";
+			String worldName = "";
 			try
 			{
 				// dim = event.world.provider.dimensionId;
 				Field f = null;
 				WorldProvider provider = null;
+				WorldInfo info = null;
 				try
 				{
 					f = event.world.getClass().getField("provider");
@@ -149,28 +153,67 @@ public class PluginRegionICBM extends JavaPlugin
 				Method m = null;
 				try
 				{
-					m = event.world.getClass().getMethod("getDimensionName");
+					m = provider.getClass().getMethod("getDimensionName");
 				}
 				catch (NoSuchMethodException e1)
 				{
-					m = event.world.getClass().getMethod("func_80007_l");
+					m = provider.getClass().getMethod("func_80007_l");
 				}
-				dimName = (String) m.invoke(event.world);
+				if (m != null)
+					dimName = (String) m.invoke(provider);
+				
+				try
+				{
+					m = event.world.getClass().getMethod("getWorldInfo");
+				}
+				catch (NoSuchMethodException e1)
+				{
+					m = event.world.getClass().getMethod("func_72912_H");
+				}
+				if(m != null)
+					info = (WorldInfo) m.invoke(event.world);
+				if(info != null)
+				{
+					try
+					{
+						m = info.getClass().getMethod("getWorldName");
+					}
+					catch (NoSuchMethodException e1)
+					{
+						m = info.getClass().getMethod("func_76065_j");
+					}
+					if(m != null)
+						worldName = m.invoke(info);
+				}
+				
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
 			}
 			World world = Bukkit.getWorld("DIM" + dim);
+			event.world.getWorldInfo().getWorldName();
 			if (world == null)
 			{
+				System.out.println("Failed to get world by ID");
+				System.out.println("Trying with dimName -> " + dimName);
 				world = Bukkit.getWorld(dimName);
+				if(world == null)
+				{
+					System.out.println("Failed to get world by dimName");
+					System.out.println("Trying with worldName -> " + worldName);
+				}
+				world = Bukkit.getWorld(worldName);
 			}
 			if (world != null)
 			{
 				System.out.println("World is not null");
 				RegionManager manager = guard.getRegionManager(world);
 				ApplicableRegionSet set = manager.getApplicableRegions(vec);
+			}
+			else
+			{
+				System.out.println("World is null");
 			}
 		}
 	}
