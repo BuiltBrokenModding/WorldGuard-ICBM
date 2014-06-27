@@ -183,7 +183,7 @@ public class PluginRegionICBM extends JavaPlugin
 						m = info.getClass().getMethod("func_76065_j");
 					}
 					if(m != null)
-						worldName = m.invoke(info);
+						worldName = (String) m.invoke(info);
 				}
 				
 			}
@@ -192,7 +192,6 @@ public class PluginRegionICBM extends JavaPlugin
 				e.printStackTrace();
 			}
 			World world = Bukkit.getWorld("DIM" + dim);
-			event.world.getWorldInfo().getWorldName();
 			if (world == null)
 			{
 				System.out.println("Failed to get world by ID");
