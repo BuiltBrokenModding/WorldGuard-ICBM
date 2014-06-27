@@ -2,21 +2,27 @@ package com.builtbroken.region.icbm;
 
 import java.lang.reflect.Method;
 
+/**
+ * Basic methods for common reflection code
+ * 
+ * @author Robert Seifert
+ * 
+ */
 public class ReflectionHelper
 {
-	/** Gets a method in the target object */
+	/** Gets a method in the target object, NoSuchMethodException returns null instead of an error  */
 	public static Method getMethod(Object target, String name, Class[] params)
 	{
 		return getMethod(target.getClass(), name, params, false);
 	}
 
-	/** Gets a method in the target object */
+	/** Gets a method in the target object, NoSuchMethodException returns null instead of an error  */
 	public static Method getDeclaredMethod(Object target, String name, Class[] params)
 	{
 		return getMethod(target.getClass(), name, params, true);
 	}
 
-	/** Gets a method in the target object */
+	/** Gets a method in the target class, NoSuchMethodException returns null instead of an error */
 	public static Method getMethod(Class target, String name, Class[] params, boolean declaired)
 	{
 		Method m = null;

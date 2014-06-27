@@ -4,7 +4,7 @@ import icbm.api.explosion.ExplosionEvent.PreExplosionEvent;
 import net.minecraftforge.event.Event;
 import net.minecraftforge.event.IEventListener;
 
-public class EventHandler implements IEventListener
+public class ForgeEventHandler implements IEventListener
 {
 
 	@Override

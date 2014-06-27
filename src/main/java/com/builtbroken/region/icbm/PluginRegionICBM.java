@@ -67,7 +67,7 @@ public class PluginRegionICBM extends JavaPlugin
 		{
 			e1.printStackTrace();
 		}
-		event.getListenerList().register(id, EventPriority.NORMAL, new EventHandler());
+		event.getListenerList().register(id, EventPriority.NORMAL, new ForgeEventHandler());
 	}
 
 	@Override

@@ -7,6 +7,12 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.storage.WorldInfo;
 
+/**
+ * Utility to get info out of the world class using reflection
+ * 
+ * @author Robert Seifert
+ * 
+ */
 public class WorldUtility
 {
 	/** Gets the world provider from the world using reflection */
