@@ -53,25 +53,17 @@ public class PluginRegionICBM extends JavaPlugin
 		int id = 0;
 		try
 		{
-			f = MinecraftForge.EVENT_BUS.getClass().getField("busID");
+			f = MinecraftForge.EVENT_BUS.getClass().getDeclaredField("busID");
 			f.setAccessible(true);
 			id = f.getInt(MinecraftForge.EVENT_BUS);
 		}
 		catch (NoSuchFieldException e1)
 		{
-			e1.printStackTrace();
+			logger().fine("Failed to get event bus ID defaulting to zero");
 		}
-		catch (SecurityException e1)
+		catch (Exception e1)
 		{
 			e1.printStackTrace();
-		}
-		catch (IllegalArgumentException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IllegalAccessException e)
-		{
-			e.printStackTrace();
 		}
 		event.getListenerList().register(id, EventPriority.NORMAL, new EventHandler());
 	}
@@ -128,6 +120,7 @@ public class PluginRegionICBM extends JavaPlugin
 		{
 			Vector vec = new Vector(event.x, event.y, event.z);
 			int dim = 0; // field_73011_w
+			String dimName = "";
 			try
 			{
 				// dim = event.world.provider.dimensionId;
@@ -153,14 +146,32 @@ public class PluginRegionICBM extends JavaPlugin
 				}
 				f.setAccessible(true);
 				dim = f.getInt(provider);
+				Method m = null;
+				try
+				{
+					m = event.world.getClass().getMethod("getDimensionName");
+				}
+				catch (NoSuchMethodException e1)
+				{
+					m = event.world.getClass().getMethod("func_80007_l");
+				}
+				dimName = (String) m.invoke(event.world);
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
 			}
 			World world = Bukkit.getWorld("DIM" + dim);
-			RegionManager manager = guard.getRegionManager(world);
-			ApplicableRegionSet set = manager.getApplicableRegions(vec);
+			if (world == null)
+			{
+				world = Bukkit.getWorld(dimName);
+			}
+			if (world != null)
+			{
+				System.out.println("World is not null");
+				RegionManager manager = guard.getRegionManager(world);
+				ApplicableRegionSet set = manager.getApplicableRegions(vec);
+			}
 		}
 	}
 }
