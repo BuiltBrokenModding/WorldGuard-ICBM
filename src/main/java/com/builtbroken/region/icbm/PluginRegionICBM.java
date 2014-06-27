@@ -1,8 +1,17 @@
 package com.builtbroken.region.icbm;
 
 import icbm.api.explosion.ExplosionEvent.PreExplosionEvent;
+
+import java.beans.IntrospectionException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.Event;
+import net.minecraftforge.event.EventPriority;
 import net.minecraftforge.event.ForgeSubscribe;
 
 import org.bukkit.Bukkit;
@@ -38,7 +47,38 @@ public class PluginRegionICBM extends JavaPlugin
 	{
 		instance = this;
 		logger().info("Enabled!");
-		MinecraftForge.EVENT_BUS.register(this);
+		Field f = null;
+		try
+		{
+			f = MinecraftForge.EVENT_BUS.getClass().getField("busID");
+		}
+		catch (NoSuchFieldException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		catch (SecurityException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		int id = 0;
+		try
+		{
+			id = f.getInt(MinecraftForge.EVENT_BUS);
+		}
+		catch (IllegalArgumentException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IllegalAccessException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Event event = new Event();
+		event.getListenerList().register(id, EventPriority.NORMAL, new EventHandler());
 	}
 
 	@Override
@@ -83,7 +123,7 @@ public class PluginRegionICBM extends JavaPlugin
 
 		return (WGCustomFlagsPlugin) plugin;
 	}
-	
+
 	@ForgeSubscribe
 	public void preExplosion(PreExplosionEvent event)
 	{
@@ -94,7 +134,26 @@ public class PluginRegionICBM extends JavaPlugin
 			Vector vec = new Vector(event.x, event.y, event.z);
 			World world = Bukkit.getWorld("DIM" + event.world.provider.dimensionId);
 			RegionManager manager = guard.getRegionManager(world);
-			ApplicableRegionSet set = manager.getApplicableRegions(vec);			
+			ApplicableRegionSet set = manager.getApplicableRegions(vec);
+		}
+	}
+
+	public static void addURLToSystemClassLoader(URL url) throws IntrospectionException
+	{
+		ClassLoader loader = MinecraftForge.class.getClassLoader();
+		URLClassLoader systemClassLoader = (URLClassLoader) loader;
+		Class<URLClassLoader> classLoaderClass = URLClassLoader.class;
+
+		try
+		{
+			Method method = classLoaderClass.getDeclaredMethod("addURL", new Class[] { URL.class });
+			method.setAccessible(true);
+			method.invoke(systemClassLoader, new Object[] { url });
+		}
+		catch (Throwable t)
+		{
+			t.printStackTrace();
+			throw new IntrospectionException("Error when adding url to system ClassLoader ");
 		}
 	}
 }
