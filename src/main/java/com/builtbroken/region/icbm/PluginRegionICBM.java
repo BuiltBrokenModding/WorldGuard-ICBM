@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.Event;
 import net.minecraftforge.event.EventPriority;
@@ -48,36 +49,30 @@ public class PluginRegionICBM extends JavaPlugin
 		instance = this;
 		logger().info("Enabled!");
 		Field f = null;
+		Event event = new Event();
+		int id = 0;
 		try
 		{
 			f = MinecraftForge.EVENT_BUS.getClass().getField("busID");
+			f.setAccessible(true);
+			id = f.getInt(MinecraftForge.EVENT_BUS);
 		}
 		catch (NoSuchFieldException e1)
 		{
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		catch (SecurityException e1)
 		{
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}
-		int id = 0;
-		try
-		{
-			id = f.getInt(MinecraftForge.EVENT_BUS);
 		}
 		catch (IllegalArgumentException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		catch (IllegalAccessException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Event event = new Event();
 		event.getListenerList().register(id, EventPriority.NORMAL, new EventHandler());
 	}
 
@@ -132,28 +127,40 @@ public class PluginRegionICBM extends JavaPlugin
 		if (guard != null)
 		{
 			Vector vec = new Vector(event.x, event.y, event.z);
-			World world = Bukkit.getWorld("DIM" + event.world.provider.dimensionId);
+			int dim = 0; // field_73011_w
+			try
+			{
+				// dim = event.world.provider.dimensionId;
+				Field f = null;
+				WorldProvider provider = null;
+				try
+				{
+					f = event.world.getClass().getField("provider");
+				}
+				catch (NoSuchFieldException e1)
+				{
+					f = event.world.getClass().getField("field_73011_w");
+				}
+				f.setAccessible(true);
+				provider = (WorldProvider) f.get(event.world);
+				try
+				{
+					f = provider.getClass().getField("dimensionId");
+				}
+				catch (NoSuchFieldException e1)
+				{
+					f = provider.getClass().getField("field_76574_g");
+				}
+				f.setAccessible(true);
+				dim = f.getInt(provider);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			World world = Bukkit.getWorld("DIM" + dim);
 			RegionManager manager = guard.getRegionManager(world);
 			ApplicableRegionSet set = manager.getApplicableRegions(vec);
-		}
-	}
-
-	public static void addURLToSystemClassLoader(URL url) throws IntrospectionException
-	{
-		ClassLoader loader = MinecraftForge.class.getClassLoader();
-		URLClassLoader systemClassLoader = (URLClassLoader) loader;
-		Class<URLClassLoader> classLoaderClass = URLClassLoader.class;
-
-		try
-		{
-			Method method = classLoaderClass.getDeclaredMethod("addURL", new Class[] { URL.class });
-			method.setAccessible(true);
-			method.invoke(systemClassLoader, new Object[] { url });
-		}
-		catch (Throwable t)
-		{
-			t.printStackTrace();
-			throw new IntrospectionException("Error when adding url to system ClassLoader ");
 		}
 	}
 }
