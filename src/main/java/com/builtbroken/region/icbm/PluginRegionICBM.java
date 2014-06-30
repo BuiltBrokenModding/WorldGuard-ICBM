@@ -8,7 +8,9 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.storage.WorldInfo;
@@ -19,15 +21,26 @@ import net.minecraftforge.event.ForgeSubscribe;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.mewin.WGCustomFlags.WGCustomFlagsPlugin;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldguard.bukkit.ConfigurationManager;
+import com.sk89q.worldguard.bukkit.SpongeUtil;
+import com.sk89q.worldguard.bukkit.WorldConfiguration;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.DefaultFlag;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.flags.StateFlag.State;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 /**
  * Bukkit plugin to help support ICBM interaction with WorldGuard
@@ -39,6 +52,7 @@ public class PluginRegionICBM extends JavaPlugin
 {
 	private static PluginRegionICBM instance;
 	private PluginLogger logger;
+	public static final StateFlag ICBM_EXPLOSION = new StateFlag("icbm-explosion", true);
 
 	public static PluginRegionICBM instance()
 	{
@@ -113,9 +127,6 @@ public class PluginRegionICBM extends JavaPlugin
 		return (WGCustomFlagsPlugin) plugin;
 	}
 
-	
-
-	@ForgeSubscribe
 	public void preExplosion(PreExplosionEvent event)
 	{
 		System.out.println("Boom Time");
@@ -126,7 +137,7 @@ public class PluginRegionICBM extends JavaPlugin
 			int dim = WorldUtility.getDimID(event.world);
 			String dimName = WorldUtility.getDimName(event.world);
 			String worldName = WorldUtility.getWorldName(event.world);
-			
+
 			// First try getting world by dim id
 			World world = Bukkit.getWorld("DIM" + dim);
 			if (world == null)
@@ -139,11 +150,32 @@ public class PluginRegionICBM extends JavaPlugin
 					world = Bukkit.getWorld(worldName);
 				}
 			}
-			
+
 			if (world != null)
 			{
 				RegionManager manager = guard.getRegionManager(world);
 				ApplicableRegionSet set = manager.getApplicableRegions(vec);
+				if (set != null)
+				{
+					Iterator<ProtectedRegion> it = set.iterator();
+					while (it.hasNext())
+					{
+						ProtectedRegion region = it.next();
+						Map<Flag<?>, Object> flags = region.getFlags();
+						if (flags.containsKey(DefaultFlag.OTHER_EXPLOSION) && flags.get(DefaultFlag.OTHER_EXPLOSION) instanceof State)
+						{
+							State state = (State) flags.get(DefaultFlag.OTHER_EXPLOSION);
+							if (state != null && state == State.DENY)
+							{
+								if (event.isCancelable())
+								{
+									event.setCanceled(true);
+									return;
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	}
