@@ -129,7 +129,6 @@ public class PluginRegionICBM extends JavaPlugin
 
 	public void preExplosion(PreExplosionEvent event)
 	{
-		System.out.println("Boom Time");
 		WorldGuardPlugin guard = getWorldGuard();
 		if (guard != null)
 		{
